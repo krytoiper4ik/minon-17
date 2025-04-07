@@ -1,47 +1,67 @@
-<Window x:Class="MatrixOperationsApp.MainWindow"
+<Window x:Class="MatrixOperations.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Matrix Operations" Height="600" Width="800">
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MatrixOperations"
+        mc:Ignorable="d"
+        Title="Matrix Operations" Height="600" Width="900">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
         
-        <StackPanel Grid.Row="0" Margin="10">
-            <TextBlock Text="Select Task:" FontWeight="Bold"/>
-            <ComboBox x:Name="TaskComboBox" SelectionChanged="TaskComboBox_SelectionChanged"/>
+        <StackPanel Grid.Column="0" Background="#FFE0E0E0">
+            <Label Content="Select Task:" FontWeight="Bold" Margin="5"/>
+            <ComboBox x:Name="taskComboBox" Margin="5" SelectionChanged="TaskComboBox_SelectionChanged"/>
             
-            <StackPanel x:Name="InputPanel" Margin="0,10,0,0">
-                <!-- Dynamic input controls will be added here -->
+            <Label Content="Matrix Parameters:" FontWeight="Bold" Margin="5,15,5,0"/>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label Content="k:" Width="30"/>
+                <TextBox x:Name="kTextBox" Width="50"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label Content="m:" Width="30"/>
+                <TextBox x:Name="mTextBox" Width="50"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label Content="n:" Width="30"/>
+                <TextBox x:Name="nTextBox" Width="50"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label Content="l:" Width="30"/>
+                <TextBox x:Name="lTextBox" Width="50"/>
             </StackPanel>
             
-            <Button x:Name="ExecuteButton" Content="Execute" Click="ExecuteButton_Click" Margin="0,10,0,0" Padding="10,5"/>
+            <Button Content="Generate Matrices" Margin="5,15,5,5" Click="GenerateMatrices_Click"/>
+            <Button Content="Execute Task" Margin="5" Click="ExecuteTask_Click"/>
+            <Button Content="Clear All" Margin="5" Click="ClearAll_Click"/>
         </StackPanel>
         
-        <TabControl Grid.Row="1" Margin="10">
-            <TabItem Header="Input">
-                <TextBox x:Name="InputTextBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
+        <TabControl Grid.Column="1" Margin="5">
+            <TabItem Header="Input Matrices">
+                <ScrollViewer>
+                    <StackPanel x:Name="inputPanel">
+                        <Label Content="File 1 Matrices:" FontWeight="Bold"/>
+                        <ItemsControl x:Name="file1Matrices"/>
+                        <Label Content="File 2 Matrices:" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <ItemsControl x:Name="file2Matrices"/>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
-            <TabItem Header="Output">
-                <TextBox x:Name="OutputTextBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
-            </TabItem>
-            <TabItem Header="File 1">
-                <TextBox x:Name="File1TextBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
-            </TabItem>
-            <TabItem Header="File 2">
-                <TextBox x:Name="File2TextBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
-            </TabItem>
-            <TabItem Header="File 3">
-                <TextBox x:Name="File3TextBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
+            <TabItem Header="Results">
+                <ScrollViewer>
+                    <StackPanel x:Name="resultsPanel">
+                        <Label Content="File 1 Contents:" FontWeight="Bold"/>
+                        <TextBox x:Name="file1Contents" MinHeight="100" IsReadOnly="True" TextWrapping="Wrap"/>
+                        <Label Content="File 2 Contents:" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <TextBox x:Name="file2Contents" MinHeight="100" IsReadOnly="True" TextWrapping="Wrap"/>
+                        <Label Content="File 3 Contents:" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <TextBox x:Name="file3Contents" MinHeight="100" IsReadOnly="True" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
-        
-        <StatusBar Grid.Row="2">
-            <StatusBarItem>
-                <TextBlock x:Name="StatusText" Text="Ready"/>
-            </StatusBarItem>
-        </StatusBar>
     </Grid>
 </Window>
