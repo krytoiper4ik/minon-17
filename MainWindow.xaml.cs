@@ -1,176 +1,259 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Linq;
+using Microsoft.Win32;
 
-namespace MatrixOperationsApp
+namespace MatrixOperations
 {
     public partial class MainWindow : Window
     {
-        private MatrixOperations matrixOps;
-        private FileOperations fileOps;
-        
+        private List<Matrix> file1Matrices = new List<Matrix>();
+        private List<Matrix> file2Matrices = new List<Matrix>();
+        private List<Matrix> file3Matrices = new List<Matrix>();
+        private Random random = new Random();
+
         public MainWindow()
         {
             InitializeComponent();
-            matrixOps = new MatrixOperations();
-            fileOps = new FileOperations();
-            
-            
+            InitializeTaskComboBox();
+        }
+
+        private void InitializeTaskComboBox()
+        {
             for (int i = 1; i <= 30; i++)
             {
-                TaskComboBox.Items.Add($"Task {i}");
+                taskComboBox.Items.Add($"Task {i}");
             }
+            taskComboBox.SelectedIndex = 0;
         }
-        
+
         private void TaskComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            InputPanel.Children.Clear();
             
-            int selectedTask = TaskComboBox.SelectedIndex + 1;
-            
-            
-            AddInputControl("k (number of matrices in File 1):", "kTextBox");
-            AddInputControl("m (rows):", "mTextBox");
-            AddInputControl("n (columns):", "nTextBox");
-            
-            
-            switch (selectedTask)
-            {
-                case 3:
-                case 15:
-                    AddInputControl("l (columns for second matrix):", "lTextBox");
-                    break;
-                case 4:
-                case 7:
-                case 14:
-                case 19:
-                case 25:
-                case 28:
-                case 30:
-                    AddInputControl("l (number of matrices in File 2):", "lTextBox");
-                    break;
-                case 5:
-                case 17:
-                    
-                    break;
-                case 10:
-                case 22:
-                    
-                    break;
-                case 23:
-                    AddInputControl("l (columns for second matrix):", "lTextBox");
-                    break;
-            }
-            
-            
-            AddInputControl("File 1 path:", "file1TextBox");
-            AddInputControl("File 2 path:", "file2TextBox");
-            
-            if (selectedTask == 2 || selectedTask == 5 || selectedTask == 10 || selectedTask == 12 || 
-                selectedTask == 14 || selectedTask == 17 || selectedTask == 22 || selectedTask == 23 || 
-                selectedTask == 24 || selectedTask == 26 || selectedTask == 27 || selectedTask == 28)
-            {
-                AddInputControl("File 3 path:", "file3TextBox");
-            }
+            int taskNumber = taskComboBox.SelectedIndex + 1;
+            lTextBox.IsEnabled = taskNumber != 9 && taskNumber != 18 && taskNumber != 21 && taskNumber != 29;
         }
-        
-        private void AddInputControl(string label, string name)
-        {
-            var stackPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0,5,0,0) };
-            stackPanel.Children.Add(new TextBlock { Text = label, Width = 150 });
-            stackPanel.Children.Add(new TextBox { Name = name, Width = 200 });
-            InputPanel.Children.Add(stackPanel);
-        }
-        
-        private void ExecuteButton_Click(object sender, RoutedEventArgs e)
+
+        private void GenerateMatrices_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                int taskNumber = TaskComboBox.SelectedIndex + 1;
-                if (taskNumber < 1 || taskNumber > 30)
+                int k = int.Parse(kTextBox.Text);
+                int m = int.Parse(mTextBox.Text);
+                int n = int.Parse(nTextBox.Text);
+                int l = lTextBox.IsEnabled ? int.Parse(lTextBox.Text) : 0;
+
+                file1Matrices.Clear();
+                file2Matrices.Clear();
+
+                
+                for (int i = 0; i < k; i++)
                 {
-                    MessageBox.Show("Please select a valid task (1-30)");
-                    return;
+                    file1Matrices.Add(Matrix.GenerateRandomMatrix(m, n, random));
                 }
-                
+
                
-                int k = int.Parse(FindTextBox("kTextBox").Text);
-                int m = int.Parse(FindTextBox("mTextBox").Text);
-                int n = int.Parse(FindTextBox("nTextBox").Text);
-                
-                string file1Path = FindTextBox("file1TextBox").Text;
-                string file2Path = FindTextBox("file2TextBox").Text;
-                string file3Path = taskNumber == 2 || taskNumber == 5 || taskNumber == 10 || taskNumber == 12 || 
-                                  taskNumber == 14 || taskNumber == 17 || taskNumber == 22 || taskNumber == 23 || 
-                                  taskNumber == 24 || taskNumber == 26 || taskNumber == 27 || taskNumber == 28 ? 
-                                  FindTextBox("file3TextBox").Text : string.Empty;
-                
-                
-                int l = 0;
-                if (taskNumber == 3 || taskNumber == 4 || taskNumber == 7 || taskNumber == 14 || 
-                    taskNumber == 15 || taskNumber == 19 || taskNumber == 23 || taskNumber == 25 || 
-                    taskNumber == 28 || taskNumber == 30)
+                if (l > 0)
                 {
-                    l = int.Parse(FindTextBox("lTextBox").Text);
+                    for (int i = 0; i < l; i++)
+                    {
+                        file2Matrices.Add(Matrix.GenerateRandomMatrix(m, n, random));
+                    }
                 }
-                
-               
-                string result = string.Empty;
-                switch (taskNumber)
-                {
-                    case 1:
-                        result = matrixOps.Task1(k, m, n, file1Path, file2Path);
-                        break;
-                    case 2:
-                        result = matrixOps.Task2(k, m, n, file1Path, file2Path, file3Path);
-                        break;
-                    case 3:
-                        result = matrixOps.Task3(k, m, n, l, file1Path, file2Path);
-                        break;
-                   
-                    case 30:
-                        result = matrixOps.Task30(k, m, n, file1Path, file2Path);
-                        break;
-                    default:
-                        result = "Task not implemented yet";
-                        break;
-                }
-                
-               
-                OutputTextBox.Text = result;
-                UpdateFileContents(file1Path, file2Path, file3Path);
-                StatusText.Text = $"Task {taskNumber} completed successfully";
+
+                DisplayMatrices();
+                MessageBox.Show("Matrices generated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                StatusText.Text = $"Error: {ex.Message}";
+                MessageBox.Show($"Error generating matrices: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void DisplayMatrices()
+        {
+            file1Matrices.Items.Clear();
+            file2Matrices.Items.Clear();
+
+            foreach (var matrix in file1Matrices)
+            {
+                file1Matrices.Items.Add(CreateMatrixDisplayItem(matrix));
+            }
+
+            foreach (var matrix in file2Matrices)
+            {
+                file2Matrices.Items.Add(CreateMatrixDisplayItem(matrix));
+            }
+        }
+
+        private FrameworkElement CreateMatrixDisplayItem(Matrix matrix)
+        {
+            var stackPanel = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
+            var grid = new Grid();
+            
+            for (int i = 0; i < matrix.Rows; i++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition());
+                var rowPanel = new StackPanel { Orientation = Orientation.Horizontal };
+                
+                for (int j = 0; j < matrix.Cols; j++)
+                {
+                    rowPanel.Children.Add(new TextBlock 
+                    { 
+                        Text = matrix.Data[i, j].ToString("F2"), 
+                        Width = 50, 
+                        Margin = new Thickness(2),
+                        TextAlignment = TextAlignment.Center
+                    });
+                }
+                
+                Grid.SetRow(rowPanel, i);
+                grid.Children.Add(rowPanel);
+            }
+            
+            stackPanel.Children.Add(grid);
+            return stackPanel;
+        }
+
+        private void ExecuteTask_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int taskNumber = taskComboBox.SelectedIndex + 1;
+                file3Matrices.Clear();
+
+                switch (taskNumber)
+                {
+                    case 1: Task1(); break;
+                    case 2: Task2(); break;
+                    case 3: Task3(); break;
+                    case 4: Task4(); break;
+                    case 5: Task5(); break;
+                    case 6: Task6(); break;
+                    case 7: Task7(); break;
+                    case 8: Task8(); break;
+                    case 9: Task9(); break;
+                    case 10: Task10(); break;
+                    case 11: Task11(); break;
+                    case 12: Task12(); break;
+                    case 13: Task13(); break;
+                    case 14: Task14(); break;
+                    case 15: Task15(); break;
+                    case 16: Task16(); break;
+                    case 17: Task17(); break;
+                    case 18: Task18(); break;
+                    case 19: Task19(); break;
+                    case 20: Task20(); break;
+                    case 21: Task21(); break;
+                    case 22: Task22(); break;
+                    case 23: Task23(); break;
+                    case 24: Task24(); break;
+                    case 25: Task25(); break;
+                    case 26: Task26(); break;
+                    case 27: Task27(); break;
+                    case 28: Task28(); break;
+                    case 29: Task29(); break;
+                    case 30: Task30(); break;
+                }
+
+                DisplayResults();
+                MessageBox.Show($"Task {taskNumber} executed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
                 MessageBox.Show($"Error executing task: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        
-        private TextBox FindTextBox(string name)
+
+        private void DisplayResults()
         {
-            return (TextBox)InputPanel.Children
-                .OfType<StackPanel>()
-                .SelectMany(sp => sp.Children.OfType<TextBox>())
-                .FirstOrDefault(tb => tb.Name == name);
+            file1Contents.Text = "File 1:\n" + string.Join("\n\n", file1Matrices.Select(m => m.ToString()));
+            file2Contents.Text = "File 2:\n" + string.Join("\n\n", file2Matrices.Select(m => m.ToString()));
+            file3Contents.Text = "File 3:\n" + string.Join("\n\n", file3Matrices.Select(m => m.ToString()));
         }
-        
-        private void UpdateFileContents(string file1Path, string file2Path, string file3Path)
+
+        private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
-            try
+            file1Matrices.Clear();
+            file2Matrices.Clear();
+            file3Matrices.Clear();
+            file1Matrices.Items.Clear();
+            file2Matrices.Items.Clear();
+            file1Contents.Text = "";
+            file2Contents.Text = "";
+            file3Contents.Text = "";
+        }
+
+        
+        private void Task1()
+        {
+            // Move matrices from file1 where a[0,0] = 0 to end of file2
+            var toMove = file1Matrices.Where(m => m.Data[0, 0] == 0).ToList();
+            foreach (var matrix in toMove)
             {
-                File1TextBox.Text = File.Exists(file1Path) ? File.ReadAllText(file1Path) : "File not found";
-                File2TextBox.Text = File.Exists(file2Path) ? File.ReadAllText(file2Path) : "File not found";
-                File3TextBox.Text = !string.IsNullOrEmpty(file3Path) && File.Exists(file3Path) ? 
-                                    File.ReadAllText(file3Path) : "File not found or not used";
+                file2Matrices.Add(matrix);
+                file1Matrices.Remove(matrix);
             }
-            catch (Exception ex)
+        }
+
+        private void Task2()
+        {
+           
+            if (file1Matrices.Count > file2Matrices.Count)
             {
-                StatusText.Text = $"Error reading files: {ex.Message}";
+                int diff = file1Matrices.Count - file2Matrices.Count;
+                file3Matrices.AddRange(file1Matrices.TakeLast(diff));
+                file1Matrices = file1Matrices.Take(file2Matrices.Count).ToList();
+            }
+            else if (file2Matrices.Count > file1Matrices.Count)
+            {
+                int diff = file2Matrices.Count - file1Matrices.Count;
+                file3Matrices.AddRange(file2Matrices.TakeLast(diff));
+                file2Matrices = file2Matrices.Take(file1Matrices.Count).ToList();
+            }
+        }
+
+        private void Task3()
+        {
+            
+            if (file1Matrices.Count != file2Matrices.Count)
+                throw new InvalidOperationException("Number of matrices in both files must be equal");
+            
+            file3Matrices.Clear();
+            for (int i = 0; i < file1Matrices.Count; i++)
+            {
+                file3Matrices.Add(Matrix.Multiply(file1Matrices[i], file2Matrices[i]));
+            }
+        }
+
+       
+        
+        private void Task29()
+        {
+            
+            file2Matrices.Clear();
+            foreach (var matrix in file1Matrices)
+            {
+                double product = matrix.ScalarProductOfDiagonals();
+                if (product > 15)
+                {
+                    file2Matrices.Add(matrix);
+                }
+            }
+        }
+
+        private void Task30()
+        {
+            
+            var eligibleMatrices = file1Matrices.Where(m => m.Data[0, 0] == 5).ToList();
+            int minCount = Math.Min(eligibleMatrices.Count, file2Matrices.Count);
+            
+            for (int i = 0; i < minCount; i++)
+            {
+                file2Matrices[i].ReplaceDiagonals(eligibleMatrices[i]);
             }
         }
     }
